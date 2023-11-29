@@ -47,7 +47,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String ball = "assets/ball1.png";
-  final List<int> ballNumber = List.generate(6, (index) => index + 1);
+  final List<int> ballNumber = List.generate(5, (index) => index + 1);
   List<String> ballAssets = [];
   final Random rand = Random();
 
