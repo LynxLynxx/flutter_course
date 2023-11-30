@@ -1,4 +1,10 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_course/models/egg_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,96 +36,151 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.amber,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  late String titleText;
+  Map jajaCzas = {
+    "hard": 7.0,
+    "medium": 4.0,
+    "soft": 3.0,
+  };
 
-  void _incrementCounter() {
+  Map jajaTitle = {
+    "hard": "Na miękko",
+    "medium": "Na średnio",
+    "soft": "Na twardo",
+  };
+
+  final EggModel soft = EggModel(hardnessTitle: "Na miękko", time: 3.0);
+  final EggModel medium = EggModel(hardnessTitle: "Na średnio", time: 4.0);
+  final EggModel hard = EggModel(hardnessTitle: "Na twardo", time: 7.0);
+  double progressBar = 0.0;
+  double secondPass = 0;
+  final AudioPlayer player = AudioPlayer();
+
+  @override
+  void initState() {
+    titleText = "Jaki rodzaj jajka preferujesz?";
+    super.initState();
+  }
+
+  void selectEgg(EggSelection select) {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      secondPass = 0.0;
+      progressBar = 0.0;
+    });
+
+    switch (select) {
+      case EggSelection.soft:
+        jajoAction(soft);
+      case EggSelection.medium:
+        jajoAction(medium);
+      case EggSelection.hard:
+        jajoAction(hard);
+    }
+  }
+
+  void jajoAction(EggModel eggModel) {
+    setState(() {
+      titleText = eggModel.hardnessTitle;
+    });
+    var startTime = eggModel.time;
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      print(startTime);
+      secondPass++;
+      setState(() {
+        progressBar = secondPass / startTime;
+      });
+
+      //startTime--;
+      if (secondPass > eggModel.time) {
+        timer.cancel();
+        setState(() {
+          titleText = "Ugotowane!";
+          player.play(AssetSource("alarm_sound.mp3"));
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        body: SafeArea(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            titleText,
+            style: GoogleFonts.dancingScript(
+              fontSize: 34,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              children: [
+                Jajo("assets/soft_egg@3x.png",
+                    () => selectEgg(EggSelection.soft)),
+                Jajo("assets/medium_egg@3x.png",
+                    () => selectEgg(EggSelection.medium)),
+                Jajo("assets/hard_egg@3x.png",
+                    () => selectEgg(EggSelection.hard)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 25,
+            ),
+            child: LinearProgressIndicator(
+              value: progressBar,
+            ),
+          ),
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+    ));
+  }
+}
+
+class Jajo extends StatelessWidget {
+  const Jajo(
+    this.asset,
+    this.onTap, {
+    Key? key,
+  }) : super(key: key);
+  final String asset;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      flex: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GestureDetector(
+          onTap: onTap,
+          child: Image.asset(
+            asset,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
